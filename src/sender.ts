@@ -10,18 +10,19 @@ import { tokenABI } from "./ABI/token-ABI";
 //ETH
 export class Sender {
 
-    private recipient = ""
+    private recipient = ethers.getAddress("")
     private NEXTAddress = ethers.getAddress("0xFE67A4450907459c3e1FFf623aA927dD4e28c67a") // ETH кончается на ...67a
 
     constructor(private wallet: ethers.Wallet) {}
 
-    async waitBalance() {
+    async waitBalance(): Promise<void> {
         const contract = new ethers.Contract(this.NEXTAddress, tokenABI, this.wallet)
         const balance = await contract.balanceOf(this.wallet.address)
         if(balance === 0n) {
             console.log(`${this.wallet.address} balance ${balance} ждем пока дойдут`)
-            await this.waitBalance()
+            return await this.waitBalance()
         } else {
+            console.log(`${this.wallet.address} balance ${balance} NEXT`)
             return
         }
     }

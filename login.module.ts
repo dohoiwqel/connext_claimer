@@ -173,9 +173,9 @@ export class Login {
 
         const txData = [
             { name: "recipient", type: "address", value: walletAddress },
-            { name: "recipientDomain", type: "uint32", value: recipientDomain }, //1634886255 для арбы
+            { name: "recipientDomain", type: "uint32", value: recipientDomain },
             { name: "beneficiary", type: "address", value: beneficiary },
-            { name: "beneficiaryDomain", type: "uint32", value: beneficiaryDomain }, //1634886255 для арбы
+            { name: "beneficiaryDomain", type: "uint32", value: beneficiaryDomain }, 
             { name: "amount", type: "uint256", value: proofAmount }
         ]
 

@@ -38,10 +38,47 @@ function checkWallets(args: any, privateKeys: string[], provider: ethers.JsonRpc
     }
 }
 
+const OPprovider = new ethers.JsonRpcProvider("https://rpc.ankr.com/optimism")
+const ETHprovider = new ethers.JsonRpcProvider("https://rpc.ankr.com/eth") 
+
+async function task(privateKey: string, args: any[]) {
+    while(true) {
+        try {
+            let wallet = new ethers.Wallet(privateKey, OPprovider)
+            const contractAddress = '' // Контракт клейма в оп
+            const contract = new ethers.Contract(contractAddress, claimABI, wallet)
+    
+            const [walletAddress, recipientDomain, beneficiary, beneficiaryDomain, proofAmount, signature, proof] = args
+
+            const tx: TransactionResponse = await contract.claimBySignature(
+                walletAddress,
+                recipientDomain,
+                beneficiary,
+                beneficiaryDomain,
+                proofAmount,
+                signature,
+                proof
+            )
+    
+            console.log(`Успешно заклеймили ${walletAddress} tx:${tx.hash}`)
+    
+            const bridge = new Bridge(wallet)
+            await bridge.bridge()
+    
+            wallet = new ethers.Wallet(privateKey, ETHprovider)
+            const sender = new Sender(wallet)
+            await sender.waitBalance()
+            await sender.send()
+            return
+        } catch(e) {
+            console.log(e)
+            await new Promise(resolve => setTimeout(() => resolve(' '), 1000))
+        }
+    }
+}
+
 async function main() {
 
-    const OPprovider = new ethers.JsonRpcProvider("https://rpc.ankr.com/optimism")
-    const ETHprovider = new ethers.JsonRpcProvider("https://rpc.ankr.com/eth") 
     const privateKeys = await read("privateKeys.txt")
 
     //@ts-ignore
@@ -49,40 +86,8 @@ async function main() {
     checkWallets(args, privateKeys, OPprovider)
 
     for(let [i, privateKey] of privateKeys.entries()) {
-
-        // (async () => {
-        //     let wallet = new ethers.Wallet(privateKey, OPprovider)
-        //     const contractAddress = '' // Контракт клейма в оп
-        //     const contract = new ethers.Contract(contractAddress, claimABI, wallet)
-    
-        //     const [walletAddress, recipientDomain, beneficiary, beneficiaryDomain, proofAmount, signature, proof] = args[i]
-        //     const tx: TransactionResponse = await contract.claimBySignature(
-        //         walletAddress,
-        //         recipientDomain,
-        //         beneficiary,
-        //         beneficiaryDomain,
-        //         proofAmount,
-        //         signature,
-        //         proof
-        //     )
-    
-        //     console.log(`Успешно заклеймили ${walletAddress} tx:${tx.hash}`)
-
-        //     const bridge = new Bridge(wallet)
-        //     await bridge.bridge()
-
-        //     wallet = new ethers.Wallet(privateKey, ETHprovider)
-        //     const sender = new Sender(wallet)
-        //     await sender.waitBalance()
-        //     await sender.send()
-        // })()
-
-        const wallet = new ethers.Wallet(privateKey, OPprovider)
-        const bridge = new Bridge(wallet);
-        await bridge.bridge()
-        // const sender = new Sender(wallet)
-        // await sender.waitBalance()
-        
+        console.log(i);
+        task(privateKey, args[i])
     }
 }
 
