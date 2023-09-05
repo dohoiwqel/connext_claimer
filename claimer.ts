@@ -47,6 +47,15 @@ async function task(privateKey: string, args: any[], arbRecipient: string) {
             
             const gasPrice = (await ARBprovider.getFeeData()).gasPrice
 
+            // const tx: TransactionResponse = await contract.claimByMerkleProof(
+            //     beneficiary,
+            //     proofAmount,
+            //     proof,
+            //     {
+            //         gasPrice: gasPrice! * BigInt(config.arbGasx)
+            //     }
+            // )
+
             const tx: TransactionResponse = await contract.claimBySignature(
                 walletAddress,
                 recipientDomain,
@@ -65,7 +74,7 @@ async function task(privateKey: string, args: any[], arbRecipient: string) {
             //АРБ ТРАНСФЕР
             const sender = new Sender(wallet)
             await sender.waitBalance()
-            await sender.send(arbRecipient)
+            await sender.send(config.recipient)
     
             return
 
@@ -91,14 +100,14 @@ async function main() {
 
     await Promise.all(promises)
 
-    const bridge = new Bridge(arbRecipient)
-    await bridge.bridge()
+    // const bridge = new Bridge(arbRecipient)
+    // await bridge.bridge()
 
-    //ЕТХ трансфер
-    let wallet = new ethers.Wallet(privateKeys[0], ETHprovider)
-    const sender = new Sender(wallet)
-    await sender.waitBalance()
-    await sender.send(config.recipient)
+    // //ЕТХ трансфер
+    // let wallet = new ethers.Wallet(privateKeys[0], ETHprovider)
+    // const sender = new Sender(wallet)
+    // await sender.waitBalance()
+    // await sender.send(config.recipient)
 }
 
 main()
