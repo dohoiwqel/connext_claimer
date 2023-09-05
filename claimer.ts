@@ -6,6 +6,7 @@ import HttpsProxyAgent from "https-proxy-agent";
 import { claimABI } from "./src/ABI/claim-ABI";
 import { Bridge } from "./src/bridge";
 import { Sender } from "./src/sender";
+import { config } from "./myconfig";
 
 async function read(fileName: string): Promise<string[]> {
     const array: string[] = []
@@ -17,12 +18,6 @@ async function read(fileName: string): Promise<string[]> {
         array.push(line)
     }
     return array
-}
-
-function getProxie(proxie: string) {
-    if(!proxie) return undefined;
-    const [ip, port, username, password] = proxie.split(':')
-    return new HttpsProxyAgent.HttpsProxyAgent(`http://${username}:${password}@${ip}:${port}`)
 }
 
 function checkWallets(args: any, privateKeys: string[], provider: ethers.JsonRpcProvider) {
@@ -38,17 +33,19 @@ function checkWallets(args: any, privateKeys: string[], provider: ethers.JsonRpc
     }
 }
 
-const OPprovider = new ethers.JsonRpcProvider("https://rpc.ankr.com/optimism")
-const ETHprovider = new ethers.JsonRpcProvider("https://rpc.ankr.com/eth") 
+const ARBprovider = new ethers.JsonRpcProvider(config.arbRPC)
+const ETHprovider = new ethers.JsonRpcProvider(config.ethRPC) 
 
 async function task(privateKey: string, args: any[]) {
     while(true) {
         try {
-            let wallet = new ethers.Wallet(privateKey, OPprovider)
-            const contractAddress = '' // Контракт клейма в оп
+            let wallet = new ethers.Wallet(privateKey, ARBprovider)
+            const contractAddress = config.contractAddress // Контракт клейма в оп
             const contract = new ethers.Contract(contractAddress, claimABI, wallet)
     
             const [walletAddress, recipientDomain, beneficiary, beneficiaryDomain, proofAmount, signature, proof] = args
+
+            const gasPrice = (await ARBprovider.getFeeData()).gasPrice
 
             const tx: TransactionResponse = await contract.claimBySignature(
                 walletAddress,
@@ -57,7 +54,10 @@ async function task(privateKey: string, args: any[]) {
                 beneficiaryDomain,
                 proofAmount,
                 signature,
-                proof
+                proof,
+                {
+                    gasPrice: gasPrice! * BigInt(config.arbGasx)
+                }
             )
     
             console.log(`Успешно заклеймили ${walletAddress} tx:${tx.hash}`)
@@ -70,6 +70,7 @@ async function task(privateKey: string, args: any[]) {
             await sender.waitBalance()
             await sender.send()
             return
+
         } catch(e) {
             console.log(e)
             await new Promise(resolve => setTimeout(() => resolve(' '), 1000))
@@ -78,15 +79,12 @@ async function task(privateKey: string, args: any[]) {
 }
 
 async function main() {
-
     const privateKeys = await read("privateKeys.txt")
-
     //@ts-ignore
     const args = JSON.parse(fs.readFileSync('args.json'))
-    checkWallets(args, privateKeys, OPprovider)
+    checkWallets(args, privateKeys, ARBprovider)
 
     for(let [i, privateKey] of privateKeys.entries()) {
-        console.log(i);
         task(privateKey, args[i])
     }
 }

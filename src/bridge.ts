@@ -7,15 +7,14 @@ import { tokenABI } from "./ABI/token-ABI";
 import { bridgeABI } from "./ABI/bridge-ABI";
 import { SdkConfig } from "@connext/sdk";
 import { create } from "@connext/sdk";
+import { config } from "../myconfig";
 
 export class Bridge {
 
     private NEXTAddress = ethers.getAddress("0x58b9cB810A68a7f3e1E4f8Cb45D1B9B3c79705E8") // кончается на ...5e8
-    private bridgeAddress = ethers.getAddress('0x8f7492de823025b4cfaab1d34c58963f2af5deda')
+    private bridgeAddress = ethers.getAddress('0xee9dec2712cce65174b561151701bf54b99c24c8')
 
-    constructor(private wallet: ethers.Wallet) {
-
-    }
+    constructor(private wallet: ethers.Wallet) {}
 
     async approve() {
         const MAX_UINT = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
@@ -37,28 +36,27 @@ export class Bridge {
             signerAddress: this.wallet.address,
             network: "mainnet",
             chains: {
-                1869640809: { //OPTIMISM
-                    providers: ["https://rpc.ankr.com/optimism"],
+                1886350457: { //ARBITRUM
+                    providers: [config.arbRPC],
                 },
                 6648936: { //ETH
-                    providers: ["https://rpc.ankr.com/eth"],
+                    providers: [config.ethRPC],
                 },
             },
         };
 
         const {sdkBase} = await create(sdkConfig)
-        const originDomain = "1869640809"
+        const originDomain = "1886350457"
         const destinationDomain = "6648936"
 
         const balance = await this.getBalance(this.NEXTAddress)
-        console.log(balance)
 
         const destination = destinationDomain
         const to = this.wallet.address
         const asset = this.NEXTAddress
         const delegate = this.wallet.address
         const amount = balance
-        const slippage = 300
+        const slippage = 500
         const calldata = "0x" 
         let relayerFee = (
             await sdkBase.estimateRelayerFee({
@@ -66,8 +64,6 @@ export class Bridge {
               destinationDomain,
             })
         ).toBigInt()
-
-        // relayerFee = BigInt(Math.floor(Number(ethers.formatUnits(relayerFee, 12))))
 
         const contract = new Contract(this.bridgeAddress, bridgeABI, this.wallet)
 
@@ -82,6 +78,8 @@ export class Bridge {
             {value: relayerFee}
         )
 
+        const gasPrice = (await this.wallet.provider!.getFeeData()).gasPrice
+
         const tx: TransactionResponse = await contract.xcall(
             destination,
             to,
@@ -92,7 +90,8 @@ export class Bridge {
             calldata,
             {
                 value: relayerFee,
-                gasLimit: gasLimit
+                gasLimit: gasLimit,
+                gasPrice: gasPrice! * BigInt(config.arbGasx)
             }
         )
 

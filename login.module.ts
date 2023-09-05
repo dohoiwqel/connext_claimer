@@ -103,18 +103,6 @@ export class Login {
         this.instance.defaults.headers['authorization'] = authToken
     }
 
-    // async getToken(): Promise<number> {
-    //     const authToken = await this.getAuth()
-    //     this.instance.defaults.headers['authorization'] = authToken
-    //     const response = await this.instance.get('https://api.tokensoft.io/payment/api/v1/events/52/eligibility')
-    //     console.log(this.wallet.address)
-    //     try {
-    //         return parseFloat(ethers.formatEther(response.data.eligibility.amount))
-    //     } catch(e) {
-    //         return 0
-    //     }
-    // }
-
     private chainIdToConnextDomain(chainId: number) {
         // const chainId = Number((await this.wallet.provider!.getNetwork()).chainId)
             
@@ -154,7 +142,7 @@ export class Login {
         const response = await this.instance.get('https://api.tokensoft.io/distributor/api/v1/distributors/52')
         const data = response.data
 
-        const chainId = data.distributor.event.networkId
+        const chainId = Number((await this.wallet.provider!.getNetwork())!.chainId)
         const proof = data.distributor.event.authorization.proof
         const beneficiary = ethers.getAddress(data.distributor.event.authorization.data[0].value)
         const amount = data.distributor.event.authorization.data[1].value
@@ -167,8 +155,8 @@ export class Login {
 
         const walletAddress = this.wallet.address
         const {chainId, proof, beneficiary, amount, domain} = await this.getData()
-        const recipientDomain = this.chainIdToConnextDomain(chainId)
-        const beneficiaryDomain = this.chainIdToConnextDomain(chainId)
+        const recipientDomain = 1886350457
+        const beneficiaryDomain = 1886350457
         const proofAmount = amount
 
         const txData = [

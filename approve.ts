@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import { Login } from "./login.module";
 import HttpsProxyAgent from "https-proxy-agent";
 import { Bridge } from "./src/bridge";
+import { config } from "./myconfig";
 
 async function read(fileName: string): Promise<string[]> {
     const array: string[] = []
@@ -19,7 +20,7 @@ async function read(fileName: string): Promise<string[]> {
 
 async function main() {
 
-    const provider = new ethers.JsonRpcProvider("https://rpc.ankr.com/optimism")
+    const provider = new ethers.JsonRpcProvider(config.arbRPC)
     const privateKeys = await read("privateKeys.txt")
 
     for(let privateKey of privateKeys) {

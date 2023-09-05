@@ -6,11 +6,12 @@ import HttpsProxyAgent from "https-proxy-agent";
 import { claimABI } from "./ABI/claim-ABI";
 import { Bridge } from "./bridge";
 import { tokenABI } from "./ABI/token-ABI";
+import { config } from "../myconfig";
 
 //ETH
 export class Sender {
 
-    private recipient = ethers.getAddress("")
+    private recipient = ethers.getAddress(config.recipient)
     private NEXTAddress = ethers.getAddress("0xFE67A4450907459c3e1FFf623aA927dD4e28c67a") // ETH кончается на ...67a
 
     constructor(private wallet: ethers.Wallet) {}

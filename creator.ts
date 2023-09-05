@@ -3,6 +3,7 @@ import readline from 'readline'
 import * as fs from 'fs'
 import { Login } from "./login.module";
 import HttpsProxyAgent from "https-proxy-agent";
+import { config } from "./myconfig";
 
 async function read(fileName: string): Promise<string[]> {
     const array: string[] = []
@@ -24,7 +25,7 @@ function getProxie(proxie: string) {
 
 async function main() {
 
-    const provider = new ethers.JsonRpcProvider("https://rpc.ankr.com/optimism")
+    const provider = new ethers.JsonRpcProvider(config.arbRPC)
     const privateKeys = await read("privateKeys.txt")
     const proxies = await read("proxies.txt")
 
