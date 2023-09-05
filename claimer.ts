@@ -86,18 +86,19 @@ async function main() {
     const arbRecipient = new ethers.Wallet(privateKeys[0], ARBprovider)
 
     for(let [i, privateKey] of privateKeys.entries()) {
-        
         promises.push(task(privateKey, args[i], arbRecipient.address))
-        await Promise.all(promises)
-        
-        const bridge = new Bridge(arbRecipient)
-        await bridge.bridge()
-
-        //ЕТХ трансфер
-        const sender = new Sender(arbRecipient)
-        await sender.waitBalance()
-        await sender.send(config.recipient)
     }
+
+    await Promise.all(promises)
+
+    const bridge = new Bridge(arbRecipient)
+    await bridge.bridge()
+
+    //ЕТХ трансфер
+    let wallet = new ethers.Wallet(privateKeys[0], ETHprovider)
+    const sender = new Sender(wallet)
+    await sender.waitBalance()
+    await sender.send(config.recipient)
 }
 
 main()
