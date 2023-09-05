@@ -3,8 +3,9 @@ import readline from 'readline'
 import * as fs from 'fs'
 import { Login } from "./login.module";
 import HttpsProxyAgent from "https-proxy-agent";
-import { claimABI } from "./ABI/claim-ABI";
-import { Bridge } from "./bridge/bridge";
+import { claimABI } from "./src/ABI/claim-ABI";
+import { Bridge } from "./src/bridge";
+import { Sender } from "./src/sender";
 
 async function read(fileName: string): Promise<string[]> {
     const array: string[] = []
@@ -39,19 +40,19 @@ function checkWallets(args: any, privateKeys: string[], provider: ethers.JsonRpc
 
 async function main() {
 
-    const provider = new ethers.JsonRpcProvider("https://rpc.ankr.com/optimism")
+    const OPprovider = new ethers.JsonRpcProvider("https://rpc.ankr.com/optimism")
+    const ETHprovider = new ethers.JsonRpcProvider("https://rpc.ankr.com/eth") 
     const privateKeys = await read("privateKeys.txt")
-    const proxies = await read("proxies.txt")
 
     //@ts-ignore
     const args = JSON.parse(fs.readFileSync('args.json'))
-    checkWallets(args, privateKeys, provider)
+    checkWallets(args, privateKeys, OPprovider)
 
     for(let [i, privateKey] of privateKeys.entries()) {
 
         // (async () => {
-        //     const wallet = new ethers.Wallet(privateKey, provider)
-        //     const contractAddress = ''
+        //     let wallet = new ethers.Wallet(privateKey, OPprovider)
+        //     const contractAddress = '' // Контракт клейма в оп
         //     const contract = new ethers.Contract(contractAddress, claimABI, wallet)
     
         //     const [walletAddress, recipientDomain, beneficiary, beneficiaryDomain, proofAmount, signature, proof] = args[i]
@@ -66,12 +67,21 @@ async function main() {
         //     )
     
         //     console.log(`Успешно заклеймили ${walletAddress} tx:${tx.hash}`)
+
+        //     const bridge = new Bridge(wallet)
+        //     await bridge.bridge()
+
+        //     wallet = new ethers.Wallet(privateKey, ETHprovider)
+        //     const sender = new Sender(wallet)
+        //     await sender.waitBalance()
+        //     await sender.send()
         // })()
 
-        const wallet = new ethers.Wallet(privateKey, provider)
+        const wallet = new ethers.Wallet(privateKey, OPprovider)
         const bridge = new Bridge(wallet);
         await bridge.bridge()
-
+        // const sender = new Sender(wallet)
+        // await sender.waitBalance()
         
     }
 }

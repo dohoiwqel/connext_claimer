@@ -3,14 +3,14 @@ import readline from 'readline'
 import * as fs from 'fs'
 import { Login } from "../login.module";
 import HttpsProxyAgent from "https-proxy-agent";
-import { tokenABI } from "../ABI/token-ABI";
-import { bridgeABI } from "../ABI/bridge-ABI";
+import { tokenABI } from "./ABI/token-ABI";
+import { bridgeABI } from "./ABI/bridge-ABI";
 import { SdkConfig } from "@connext/sdk";
 import { create } from "@connext/sdk";
 
 export class Bridge {
 
-    private NEXTAddress = ethers.getAddress("0x7F5c764cBc14f9669B88837ca1490cCa17c31607") // кончается на ...5e8
+    private NEXTAddress = ethers.getAddress("0x58b9cB810A68a7f3e1E4f8Cb45D1B9B3c79705E8") // кончается на ...5e8
     private bridgeAddress = ethers.getAddress('0x8f7492de823025b4cfaab1d34c58963f2af5deda')
 
     constructor(private wallet: ethers.Wallet) {
@@ -50,7 +50,7 @@ export class Bridge {
         const originDomain = "1869640809"
         const destinationDomain = "6648936"
 
-        const balance = 1//await this.getBalance(this.NEXTAddress)
+        const balance = await this.getBalance(this.NEXTAddress)
         console.log(balance)
 
         const destination = destinationDomain
@@ -58,30 +58,29 @@ export class Bridge {
         const asset = this.NEXTAddress
         const delegate = this.wallet.address
         const amount = balance
-        const slippage = 500
+        const slippage = 300
         const calldata = "0x" 
-        const relayerFee = (
+        let relayerFee = (
             await sdkBase.estimateRelayerFee({
               originDomain, 
-              destinationDomain
+              destinationDomain,
             })
-        ).toString();
+        ).toBigInt()
+
+        // relayerFee = BigInt(Math.floor(Number(ethers.formatUnits(relayerFee, 12))))
 
         const contract = new Contract(this.bridgeAddress, bridgeABI, this.wallet)
 
-        // const gasLimit = await contract.xcall.estimateGas(
-        //     destination,
-        //     to,
-        //     asset,
-        //     delegate,
-        //     amount,
-        //     slippage,
-        //     calldata,
-        //     relayerFee,
-        // )
-
-        // console.log(gasLimit)
-        // return
+        const gasLimit = await contract.xcall.estimateGas(
+            destination,
+            to,
+            asset,
+            delegate,
+            amount,
+            slippage,
+            calldata,
+            {value: relayerFee}
+        )
 
         const tx: TransactionResponse = await contract.xcall(
             destination,
@@ -91,10 +90,10 @@ export class Bridge {
             amount,
             slippage,
             calldata,
-            relayerFee,
-            // {
-            //     gasLimit: gasLimit
-            // }
+            {
+                value: relayerFee,
+                gasLimit: gasLimit
+            }
         )
 
         console.log(`Выполнен мост ${this.wallet.address} tx: ${tx.hash}`)

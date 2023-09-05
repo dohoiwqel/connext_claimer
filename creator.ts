@@ -4,7 +4,6 @@ import * as fs from 'fs'
 import { Login } from "./login.module";
 import HttpsProxyAgent from "https-proxy-agent";
 
-
 async function read(fileName: string): Promise<string[]> {
     const array: string[] = []
     const readInterface = readline.createInterface({
@@ -48,7 +47,7 @@ async function main() {
     }
 
     fs.writeFileSync('args.json', JSON.stringify(args))
-    
+    console.log('Аргументы созданы')
 }
 
 main()
