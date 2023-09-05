@@ -36,7 +36,7 @@ export class Bridge {
             signerAddress: this.wallet.address,
             network: "mainnet",
             chains: {
-                1886350457: { //ARBITRUM
+                1634886255: { //ARBITRUM
                     providers: [config.arbRPC],
                 },
                 6648936: { //ETH
@@ -46,7 +46,7 @@ export class Bridge {
         };
 
         const {sdkBase} = await create(sdkConfig)
-        const originDomain = "1886350457"
+        const originDomain = "1634886255"
         const destinationDomain = "6648936"
 
         const balance = await this.getBalance(this.NEXTAddress)

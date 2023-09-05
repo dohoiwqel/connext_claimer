@@ -155,8 +155,8 @@ export class Login {
 
         const walletAddress = this.wallet.address
         const {chainId, proof, beneficiary, amount, domain} = await this.getData()
-        const recipientDomain = 1886350457
-        const beneficiaryDomain = 1886350457
+        const recipientDomain = 1634886255
+        const beneficiaryDomain = 1634886255
         const proofAmount = amount
 
         const txData = [
