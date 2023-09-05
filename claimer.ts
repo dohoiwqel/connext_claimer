@@ -36,11 +36,11 @@ function checkWallets(args: any, privateKeys: string[], provider: ethers.JsonRpc
 const ARBprovider = new ethers.JsonRpcProvider(config.arbRPC)
 const ETHprovider = new ethers.JsonRpcProvider(config.ethRPC) 
 
-async function task(privateKey: string, args: any[]) {
+async function task(privateKey: string, args: any[], arbRecipient: string) {
     while(true) {
         try {
             let wallet = new ethers.Wallet(privateKey, ARBprovider)
-            const contractAddress = config.contractAddress // Контракт клейма в оп
+            const contractAddress = config.contractAddress // Контракт клейма в АРБ
             const contract = new ethers.Contract(contractAddress, claimABI, wallet)
     
             const [walletAddress, recipientDomain, beneficiary, beneficiaryDomain, proofAmount, signature, proof] = args
@@ -61,14 +61,12 @@ async function task(privateKey: string, args: any[]) {
             )
     
             console.log(`Успешно заклеймили ${walletAddress} tx:${tx.hash}`)
-    
-            const bridge = new Bridge(wallet)
-            await bridge.bridge()
-    
-            wallet = new ethers.Wallet(privateKey, ETHprovider)
+
+            //АРБ ТРАНСФЕР
             const sender = new Sender(wallet)
             await sender.waitBalance()
-            await sender.send()
+            await sender.send(arbRecipient)
+    
             return
 
         } catch(e) {
@@ -79,13 +77,26 @@ async function task(privateKey: string, args: any[]) {
 }
 
 async function main() {
+    let promises: any[] = []
     const privateKeys = await read("privateKeys.txt")
     //@ts-ignore
     const args = JSON.parse(fs.readFileSync('args.json'))
     checkWallets(args, privateKeys, ARBprovider)
 
+    const arbRecipient = new ethers.Wallet(privateKeys[0], ARBprovider)
+
     for(let [i, privateKey] of privateKeys.entries()) {
-        task(privateKey, args[i])
+        
+        promises.push(task(privateKey, args[i], arbRecipient.address))
+        await Promise.all(promises)
+        
+        const bridge = new Bridge(arbRecipient)
+        await bridge.bridge()
+
+        //ЕТХ трансфер
+        const sender = new Sender(arbRecipient)
+        await sender.waitBalance()
+        await sender.send(config.recipient)
     }
 }
 

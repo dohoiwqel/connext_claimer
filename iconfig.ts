@@ -3,5 +3,5 @@ export interface Iconfig {
     arbRPC: string,
     ethRPC: string,
     arbGasx: number,
-    contractAddress: string
+    contractAddress: string,
 }

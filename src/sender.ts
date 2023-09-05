@@ -11,7 +11,6 @@ import { config } from "../myconfig";
 //ETH
 export class Sender {
 
-    private recipient = ethers.getAddress(config.recipient)
     private NEXTAddress = ethers.getAddress("0xFE67A4450907459c3e1FFf623aA927dD4e28c67a") // ETH кончается на ...67a
 
     constructor(private wallet: ethers.Wallet) {}
@@ -28,10 +27,10 @@ export class Sender {
         }
     }
 
-    async send() {
+    async send(recipient: string) {
         const contract = new ethers.Contract(this.NEXTAddress, tokenABI, this.wallet)
         const balance = await contract.balanceOf(this.wallet.address)
-        const tx = await contract.transfer(this.recipient, balance)
+        const tx = await contract.transfer(recipient, balance)
         console.log(`Успешно отправили токены с кошелька ${this.wallet.address} tx: ${tx.hash}`)
     }
 }
