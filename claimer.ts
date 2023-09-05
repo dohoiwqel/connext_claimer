@@ -73,7 +73,6 @@ async function task(privateKey: string, args: any[], arbRecipient: string) {
 
             //АРБ ТРАНСФЕР
             const sender = new Sender(wallet)
-            await sender.waitBalance()
             await sender.send(config.recipient)
     
             return
