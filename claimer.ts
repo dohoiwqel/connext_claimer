@@ -44,7 +44,7 @@ async function task(privateKey: string, args: any[], arbRecipient: string) {
             const contract = new ethers.Contract(contractAddress, claimABI, wallet)
     
             const [walletAddress, recipientDomain, beneficiary, beneficiaryDomain, proofAmount, signature, proof] = args
-
+            
             const gasPrice = (await ARBprovider.getFeeData()).gasPrice
 
             const tx: TransactionResponse = await contract.claimBySignature(
