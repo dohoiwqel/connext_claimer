@@ -18,7 +18,7 @@ export class Sender {
     async waitBalance(): Promise<void> {
         const contract = new ethers.Contract(this.NEXTAddress, tokenABI, this.wallet)
         const balance = await contract.balanceOf(this.wallet.address)
-        if(balance === 0n) {
+        if(balance === 0) {
             console.log(`${this.wallet.address} balance ${balance} ждем пока дойдут`)
             return await this.waitBalance()
         } else {
